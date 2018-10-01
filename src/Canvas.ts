@@ -27,6 +27,10 @@ export default class Canvas {
         this.vertices.push(vertex);
     }
 
+    public getVertices(): Vertex[] {
+        return this.vertices;
+    }
+
     private initialiseCanvas(): void {
         this.context.save();
         this.draw();
@@ -55,27 +59,11 @@ export default class Canvas {
         this.context.clearRect(0, 0, this.htmlCanvasElement.width, this.htmlCanvasElement.height);
         this.context.save();
 
-        const startX = 50;
-        const startY = 80;
-
         this.context.beginPath();
-        this.context.rect(startX, startY, 100, 20);
-        this.context.fillStyle = 'blue';
+        this.context.rect(0, 0, window.innerWidth, window.innerHeight);
+        this.context.fillStyle = 'black';
         this.context.fill();
         this.context.restore();
-
-        const drawRotatedRect = (x: number, y: number, width: number, height: number, degrees: number) => {
-            this.context.save();
-            this.context.beginPath();
-            this.context.translate(x+width/2, y+height/2);
-            this.context.rotate(degrees * Math.PI / 180);
-            this.context.rect(-width/2, -height/2, width, height);
-            this.context.fillStyle = 'gold';
-            this.context.fill();
-            this.context.restore();
-        }
-
-        drawRotatedRect(startX, startY, 100, 20, this.rotation);
 
         this.rotation += 10;
         if(this.rotation === 360) {
@@ -83,17 +71,33 @@ export default class Canvas {
         }
 
         this.vertices.forEach((vertex, i) => {
-            console.log(`Index: ${i}`);
             this.context.restore();
             this.context.save();
             this.context.beginPath();
             this.context.arc(vertex.getX(), vertex.getY(), 2, 0, 2 * Math.PI);
-            this.context.fillStyle = 'black';
+            this.context.fillStyle = 'white';
             this.context.fill();
             this.context.restore();
 
-            const x = vertex.getX() + (1 * Math.cos(vertex.getRotation() * Math.PI / 180));
-            const y = vertex.getY() + (1 * Math.sin(vertex.getRotation() * Math.PI / 180));
+            const xPos = vertex.getX();
+            const yPos = vertex.getY();
+
+            if(xPos >= window.innerWidth) {
+                vertex.setXVelocity(vertex.getXVelocity() * -1)
+            }
+            if(xPos <= 0) {
+                vertex.setXVelocity(vertex.getXVelocity() * -1)
+            }
+            if(yPos >= window.innerHeight) {
+                vertex.setYVelocity(vertex.getYVelocity() * -1)
+            }
+            if(yPos <= 0) {
+                vertex.setYVelocity(vertex.getYVelocity() * -1)
+            }
+
+            const x = vertex.getX() + (vertex.getXVelocity() * Math.cos(vertex.getRotation() * Math.PI / 180));
+            const y = vertex.getY() + (vertex.getYVelocity() * Math.sin(vertex.getRotation() * Math.PI / 180));
+
             vertex.setX(x);
             vertex.setY(y);
 
@@ -116,6 +120,7 @@ export default class Canvas {
                 this.context.beginPath();
                 this.context.moveTo(vertex.getX(), vertex.getY());
                 this.context.lineTo(vertexB.getX(), vertexB.getY());
+                this.context.strokeStyle = 'white';
                 this.context.stroke();
                 this.context.restore();
             });
